@@ -6,7 +6,7 @@
 *
 * @author Irina Vlaykova
 * @idnumber 8MI0600507
-* @compiler <VC>
+* @compiler VC
 *
 * file with all the functions
 *
@@ -51,8 +51,12 @@ int myMax(int a, int b) {
 }
 
 bool isZeroPolynomial(const vector<pair<int, int>>& poly) {
-    for (size_t i = 0; i < poly.size(); ++i) {
-        if (poly[i].first != 0) {
+    for (const pair<int, int>& term : poly) {
+        if (term.second == 0) { 
+            cout << "Error: Found a fraction with denominator 0!" << endl;
+            return false;
+        }
+        if (term.first != 0) {
             return false;
         }
     }

@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="KursovProekt.cpp">
+    <ClCompile Include="UPpr_24-25_fn8MI0600507_KP04.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
