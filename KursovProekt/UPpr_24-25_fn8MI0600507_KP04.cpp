@@ -1,7 +1,7 @@
 /**
 * Solution to course project #4
 * Introduction to programming course
-* Faculty of Matematics and Informatics of Sofia University
+* Faculty of Mathematics and Informatics of Sofia University
 * Winter semester 2024/2025
 *
 * @author Irina Vlaykova
