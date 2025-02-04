@@ -1,3 +1,18 @@
+/**
+* Solution to course project #4
+* Introduction to programming course
+* Faculty of Matematics and Informatics of Sofia University
+* Winter semester 2024/2025
+*
+* @author Irina Vlaykova
+* @idnumber 8MI0600507
+* @compiler <VC>
+*
+* file with all the functions
+*
+*/
+
+
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -13,8 +28,6 @@ void displayMenu() {
     cout << "6) Find value of polynomial at a given number\n";
     cout << "7) Find GCD of two polynomials\n";
     cout << "8) Display Vieta's formulas for a given polynomial\n";
-    cout << "9) Represent a polynomial in powers of (x+a)\n";
-    cout << "10) Factor polynomial and find its rational roots\n";
     cout << "11) Quit program\n";
 }
 
@@ -27,8 +40,8 @@ int myAbs(int num) {
 
 int getDegreeManual(const vector<pair<int, int>>& poly) {
     int count = 0;
-    for (const auto& coeff : poly) {
-        ++count;
+    for (vector<pair<int, int>>::const_iterator it = poly.begin(); it != poly.end(); ++it) {
+        count++;
     }
     return count - 1;
 }
@@ -38,8 +51,8 @@ int myMax(int a, int b) {
 }
 
 bool isZeroPolynomial(const vector<pair<int, int>>& poly) {
-    for (const auto& coeff : poly) {
-        if (coeff.first != 0) {
+    for (size_t i = 0; i < poly.size(); ++i) {
+        if (poly[i].first != 0) {
             return false;
         }
     }
@@ -101,9 +114,7 @@ int gcd(int a, int b) {
 }
 
 void printPolynomial(const vector<pair<int, int>>& poly, const char* name) {
-    int degree = 0;
-    for (const auto& coeff : poly) ++degree;
-    --degree;
+    int degree = poly.end() - poly.begin() - 1;
 
     cout << name << " = ";
     bool isFirst = true;
@@ -258,6 +269,12 @@ vector<pair<int, int>> multiplyPolynomials(const vector<pair<int, int>>& poly1, 
 
 pair<vector<pair<int, int>>, vector<pair<int, int>>> dividePolynomials(const vector<pair<int, int>>& dividend,
     const vector<pair<int, int>>& divisor) {
+
+    if (isZeroPolynomial(divisor)) {
+        cout << "Error: Attempt to divide by a zero polynomial!" << endl;
+        return { {}, dividend };  
+    }
+
     int degreeDividend = getDegreeManual(dividend);
     int degreeDivisor = getDegreeManual(divisor);
 
@@ -304,14 +321,14 @@ pair<vector<pair<int, int>>, vector<pair<int, int>>> dividePolynomials(const vec
 vector<pair<int, int>> multiplyPolynomialByScalar(const vector<pair<int, int>>& poly, int scalarNumerator, int scalarDenominator) {
     int degree = getDegreeManual(poly);
 
-    vector<pair<int, int>> result(degree);
+    vector<pair<int, int>> result(degree + 1); 
 
-    for (int i = 0; i < degree; ++i) {
+    for (int i = 0; i <= degree; ++i) {  
         int newNumerator = poly[i].first * scalarNumerator;
         int newDenominator = poly[i].second * scalarDenominator;
 
         if (newDenominator == 0) {
-            cerr << "Error: Denominator cannot be zero!" << endl;
+            cout << "Error: Denominator cannot be zero!" << endl;
             newDenominator = 1;
         }
 
@@ -319,11 +336,17 @@ vector<pair<int, int>> multiplyPolynomialByScalar(const vector<pair<int, int>>& 
         newNumerator /= divisor;
         newDenominator /= divisor;
 
+        if (newDenominator < 0) {
+            newNumerator = -newNumerator;
+            newDenominator = -newDenominator;
+        }
+
         result[i] = { newNumerator, newDenominator };
     }
 
     return result;
 }
+
 
 pair<int, int> evaluatePolynomialAsFraction(const vector<pair<int, int>>& poly, int numerator, int denominator) {
     int degree = getDegreeManual(poly);
@@ -361,14 +384,15 @@ vector<pair<int, int>> gcdPolynomials(const vector<pair<int, int>>& p1, const ve
     vector<pair<int, int>> b = p2;
 
     while (!isZeroPolynomial(b)) {
-        auto divisionResult = dividePolynomials(a, b);
-        auto& quotient = divisionResult.first;
-        auto& remainder = divisionResult.second;
+        pair<vector<pair<int, int>>, vector<pair<int, int>>> divisionResult = dividePolynomials(a, b);
+        vector<pair<int, int>>& quotient = divisionResult.first;
+        vector<pair<int, int>>& remainder = divisionResult.second;
+
         a = b;
         b = remainder;
     }
 
-    for (auto& coeff : a) {
+    for (pair<int, int>& coeff : a) {
         int divisor = gcd(myAbs(coeff.first), coeff.second);
         coeff.first /= divisor;
         coeff.second /= divisor;
@@ -386,71 +410,27 @@ void displayVietasFormulas(const vector<pair<int, int>>& poly) {
     }
 
     cout << "\nVieta's Formulas for polynomial: ";
-    cout << "P(x) = ";
-    for (int i = 0; i <= degree; ++i) {
-        int num = poly[i].first;
-        int den = poly[i].second;
-        if (num != 0) {
-            if (i > 0 && num > 0) cout << " + ";
-            if (num < 0) cout << " - ";
-            cout << abs(num);
-            if (den != 1) cout << "/" << den;
-            if (i < degree) {
-                cout << "x";
-                if (degree - i > 1) cout << "^" << degree - i;
-            }
-        }
-    }
-    cout << endl;
+    printPolynomial(poly, "P(x)");
 
     int leadingCoeffNum = poly[0].first;
     int leadingCoeffDenom = poly[0].second;
 
-    {
-        int numerator = -poly[1].first * leadingCoeffDenom;
-        int denominator = poly[1].second * leadingCoeffNum;
-        int gcdVal = gcd(abs(numerator), abs(denominator));
-        numerator /= gcdVal;
-        denominator /= gcdVal;
-        cout << "x1 + x2 + x3 + x4 = " << numerator;
-        if (denominator != 1) cout << "/" << denominator;
-        cout << endl;
-    }
-
-    {
-        int numerator = poly[2].first * leadingCoeffDenom;
-        int denominator = poly[2].second * leadingCoeffNum;
+    for (int k = 1; k <= degree; ++k) {
+        int numerator = (k % 2 == 1 ? -1 : 1) * poly[k].first * leadingCoeffDenom;
+        int denominator = poly[k].second * leadingCoeffNum;
         int gcdVal = gcd(myAbs(numerator), myAbs(denominator));
+
         numerator /= gcdVal;
         denominator /= gcdVal;
-        cout << "x1x2 + x1x3 + x1x4 + x2x3 + x2x4 + x3x4 = " << numerator;
-        if (denominator != 1) cout << "/" << denominator;
+
+        cout << "y" << k << " = " << numerator;
+        if (denominator != 1) {
+            cout << "/" << denominator;
+        }
         cout << endl;
     }
-
-    {
-        int numerator = -poly[3].first * leadingCoeffDenom;
-        int denominator = poly[3].second * leadingCoeffNum;
-        int gcdVal = gcd(abs(numerator), abs(denominator));
-        numerator /= gcdVal;
-        denominator /= gcdVal;
-        cout << "x1x2x3 + x1x2x4 + x1x3x4 + x2x3x4 = " << numerator;
-        if (denominator != 1) cout << "/" << denominator;
-        cout << endl;
-    }
-
-    {
-        int numerator = poly[4].first * leadingCoeffDenom;
-        int denominator = poly[4].second * leadingCoeffNum;
-        int gcdVal = gcd(myAbs(numerator), myAbs(denominator));
-        numerator /= gcdVal;
-        denominator /= gcdVal;
-        cout << "x1x2x3x4 = " << numerator;
-        if (denominator != 1) cout << "/" << denominator;
-        cout << endl;
-    }
-
 }
+
 
 int main() {
     int choice;
@@ -503,16 +483,28 @@ int main() {
             printPolynomial(remainder, "R(x)");
             break;
         }
+        
         case 5: {
             vector<pair<int, int>> poly = inputPolynomial("P");
 
-            cout << "Enter scalar (e.g., -2/3 or 5): ";
-
-            string input;
-            cin >> input;
+            cout << "Enter rational number: ";
 
             int scalarNumerator = 0, scalarDenominator = 1;
-            stringToFraction(input.c_str(), scalarNumerator, scalarDenominator);
+            char separator;
+
+            cin >> scalarNumerator;
+
+            if (cin.peek() == '/') {
+                cin >> separator >> scalarDenominator; 
+            }
+            else {
+                scalarDenominator = 1; 
+            }
+
+            if (scalarDenominator == 0) {
+                cout << "Error: Denominator cannot be zero! Defaulting to 1." << endl;
+                scalarDenominator = 1;
+            }
 
             vector<pair<int, int>> result = multiplyPolynomialByScalar(poly, scalarNumerator, scalarDenominator);
 
@@ -524,19 +516,36 @@ int main() {
             vector<pair<int, int>> poly = inputPolynomial("P");
 
             cout << "Enter rational number: ";
-            string input;
-            cin >> input;
 
             int numerator = 0, denominator = 1;
-            stringToFraction(input.c_str(), numerator, denominator);
+            char separator;
+
+            cin >> numerator;
+
+            if (cin.peek() == '/') {
+                cin >> separator >> denominator; 
+            }
+            else {
+                denominator = 1; 
+            }
+
+            if (denominator == 0) {
+                cout << "Error: Denominator cannot be zero! Defaulting to 1." << endl;
+                denominator = 1;
+            }
 
             auto result = evaluatePolynomialAsFraction(poly, numerator, denominator);
 
-            cout << "P(" << numerator << "/" << denominator << ") = " << result.first;
+            cout << "P(" << numerator;
+            if (denominator != 1) {
+                cout << "/" << denominator;
+            }
+            cout << ") = " << result.first;
             if (result.second != 1) {
                 cout << "/" << result.second;
             }
             cout << endl;
+
             break;
         }
 
